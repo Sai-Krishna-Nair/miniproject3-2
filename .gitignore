@@ -1,0 +1,11 @@
+__pycache__
+Backend/.pytest_cache
+.env
+miniproject
+distancecalc.py
+Backend/test_auth_helper.py
+Backend/supabase_setup.sql
+Backend/tests
+Backend/pytest.ini
+Backend/mainv1.py
+backend_report.md
