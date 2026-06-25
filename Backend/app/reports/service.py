@@ -31,17 +31,17 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
 # Geofence
 # ---------------------------------------------------------------------------
 
-def check_geofence(latitude: float, longitude: float) -> bool:
+def find_duplicate_report(latitude: float, longitude: float) -> Optional[dict]:
     """
-    Returns True if a pending report already exists within GEOFENCE_RADIUS_METERS.
-    Uses a bounding-box pre-filter then exact Haversine.
+    Finds a pending report within GEOFENCE_RADIUS_METERS.
+    Returns the report row dict (including id and priority) or None.
     """
     delta = 0.0002  # ~22m bounding box
     sb = get_supabase()
 
     response = (
         sb.table("reports")
-        .select("latitude, longitude")
+        .select("id, latitude, longitude, priority, before_image_url")
         .neq("status", "fixed")
         .gte("latitude", latitude - delta)
         .lte("latitude", latitude + delta)
@@ -53,8 +53,8 @@ def check_geofence(latitude: float, longitude: float) -> bool:
     for row in response.data:
         dist = haversine_distance(latitude, longitude, row["latitude"], row["longitude"])
         if dist <= settings.GEOFENCE_RADIUS_METERS:
-            return True
-    return False
+            return row
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -89,12 +89,24 @@ async def submit_report(
             "status_code": 400,
         }
 
-    # 2. Geofence check
-    if check_geofence(latitude, longitude):
+    # 2. Geofence check / priority increment
+    sb = get_supabase()
+    duplicate = find_duplicate_report(latitude, longitude)
+    if duplicate:
+        # Pothole already reported! Increment priority by 1
+        current_priority = duplicate.get("priority", 1) or 1
+        new_priority = current_priority + 1
+        
+        sb.table("reports").update({
+            "priority": new_priority
+        }).eq("id", duplicate["id"]).execute()
+        
         return {
-            "success": False,
-            "error": "A report already exists within 10 metres of this location.",
-            "status_code": 409,
+            "success": True,
+            "message": "Duplicate reported. Pothole priority escalated.",
+            "report_id": duplicate["id"],
+            "detections": detections,
+            "annotated_image_url": duplicate.get("before_image_url") or "",
         }
 
     # 3. Annotate + upload
@@ -105,7 +117,6 @@ async def submit_report(
 
     # 4. Insert DB row
     report_id = str(uuid.uuid4())
-    sb = get_supabase()
     sb.table("reports").insert({
         "id": report_id,
         "reported_by": user_id,
@@ -113,6 +124,7 @@ async def submit_report(
         "longitude": longitude,
         "status": "pending",
         "before_image_url": public_url,
+        "priority": 1,
     }).execute()
 
     return {
@@ -224,20 +236,59 @@ def get_reports(
             if haversine_distance(lat, lng, row["latitude"], row["longitude"]) <= radius
         ]
 
+    # Map user IDs to full names to display names instead of UUIDs
+    try:
+        profiles_resp = sb.table("profiles").select("id, full_name").execute()
+        profile_map = {row["id"]: row["full_name"] for row in profiles_resp.data}
+        for row in all_records:
+            row["reporter_name"] = profile_map.get(row.get("reported_by"), "Unknown Citizen")
+            if row.get("resolved_by"):
+                row["resolver_name"] = profile_map.get(row.get("resolved_by"), "Unknown Authority")
+    except Exception as e:
+        print(f"Error fetching profiles map: {e}")
+        for row in all_records:
+            row["reporter_name"] = "Unknown Citizen"
+            row["resolver_name"] = "Unknown Authority"
+
     return {"success": True, "count": len(all_records), "data": all_records}
 
 
 def get_single_report(report_id: str) -> dict:
-    """Fetch a single report by ID."""
+    """Fetch a single report by ID, attaching reporter and resolver names."""
     sb = get_supabase()
     response = sb.table("reports").select("*").eq("id", report_id).execute()
     if not response.data:
         raise HTTPException(status_code=404, detail="Report not found.")
-    return {"success": True, "data": response.data[0]}
+    
+    report = response.data[0]
+    
+    # Attach reporter name
+    reporter_id = report.get("reported_by")
+    if reporter_id:
+        try:
+            prof_resp = sb.table("profiles").select("full_name").eq("id", reporter_id).execute()
+            report["reporter_name"] = prof_resp.data[0].get("full_name", "Unknown Citizen") if prof_resp.data else "Unknown Citizen"
+        except Exception:
+            report["reporter_name"] = "Unknown Citizen"
+    else:
+        report["reporter_name"] = "System"
+
+    # Attach resolver name
+    resolver_id = report.get("resolved_by")
+    if resolver_id:
+        try:
+            prof_resp = sb.table("profiles").select("full_name").eq("id", resolver_id).execute()
+            report["resolver_name"] = prof_resp.data[0].get("full_name", "Unknown Authority") if prof_resp.data else "Unknown Authority"
+        except Exception:
+            report["resolver_name"] = "Unknown Authority"
+    else:
+        report["resolver_name"] = None
+
+    return {"success": True, "data": report}
 
 
 def get_user_reports(user_id: str) -> dict:
-    """Fetch all reports submitted by a specific citizen."""
+    """Fetch all reports submitted by a specific citizen, attaching names."""
     sb = get_supabase()
     response = (
         sb.table("reports")
@@ -246,4 +297,18 @@ def get_user_reports(user_id: str) -> dict:
         .order("created_at", desc=True)
         .execute()
     )
-    return {"success": True, "count": len(response.data), "data": response.data}
+    all_records = response.data
+    
+    try:
+        profiles_resp = sb.table("profiles").select("id, full_name").execute()
+        profile_map = {row["id"]: row["full_name"] for row in profiles_resp.data}
+        for row in all_records:
+            row["reporter_name"] = profile_map.get(row.get("reported_by"), "Unknown Citizen")
+            if row.get("resolved_by"):
+                row["resolver_name"] = profile_map.get(row.get("resolved_by"), "Unknown Authority")
+    except Exception:
+        for row in all_records:
+            row["reporter_name"] = "Unknown Citizen"
+            row["resolver_name"] = "Unknown Authority"
+            
+    return {"success": True, "count": len(all_records), "data": all_records}

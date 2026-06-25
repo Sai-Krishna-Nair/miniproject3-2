@@ -9,4 +9,7 @@ Backend/pytest.ini
 Backend/mainv1.py
 backend_report.md
 .volta_home
-Frontend
+# Frontend
+/doc_sections
+Major Project Documentation (Template).md
+Pothole_Reporter_Technical_Documentation.md
