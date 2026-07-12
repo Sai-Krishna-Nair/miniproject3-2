@@ -6,7 +6,7 @@ import './index.css'
 import App from './App.tsx'
 
 // Register service worker for PWA functionality (caching, offline, etc.)
-if ('serviceWorker' in navigator && !import.meta.env.DEV) {
+if ('serviceWorker' in navigator) {
   registerSW({ immediate: true })
 }
 

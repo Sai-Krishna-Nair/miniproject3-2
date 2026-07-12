@@ -36,7 +36,7 @@ def find_duplicate_report(latitude: float, longitude: float) -> Optional[dict]:
     Finds a pending report within GEOFENCE_RADIUS_METERS.
     Returns the report row dict (including id and priority) or None.
     """
-    delta = 0.0002  # ~22m bounding box
+    delta = 0.00035  # ~38m bounding box
     sb = get_supabase()
 
     response = (

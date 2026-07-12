@@ -43,6 +43,25 @@ export const ProfileView: React.FC = () => {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
+      
+      // Client-side validation
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp']
+      const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp']
+      const maxFileSize = 10 * 1024 * 1024 // 10MB
+
+      const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
+      if (!allowedExtensions.includes(ext) || !allowedMimeTypes.includes(file.type)) {
+        setUploadError(`Invalid file type. Only ${allowedExtensions.join(', ')} images are allowed.`)
+        if (e.target) e.target.value = ''
+        return
+      }
+
+      if (file.size > maxFileSize) {
+        setUploadError('File is too large. Maximum allowed size is 10MB.')
+        if (e.target) e.target.value = ''
+        return
+      }
+
       setUploading(true)
       setUploadError(null)
 
@@ -76,7 +95,7 @@ export const ProfileView: React.FC = () => {
       {/* Avatar Stark Picture Container */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem' }}>
         <div 
-          style={{ position: 'relative', width: '100px', height: '100px', cursor: 'pointer', border: '2px solid #000000', backgroundColor: 'var(--bg-tertiary)' }}
+          style={{ position: 'relative', width: '100px', height: '100px', cursor: 'pointer', border: '1px solid rgba(0,0,0,0.08)', backgroundColor: 'var(--bg-tertiary)', borderRadius: '50%', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}
           onClick={triggerAvatarInput}
         >
           {profile?.avatar_url ? (
@@ -95,13 +114,15 @@ export const ProfileView: React.FC = () => {
           <div 
             style={{ 
               position: 'absolute', 
-              bottom: '-4px', 
-              right: '-4px', 
+              bottom: '2px', 
+              right: '2px', 
               backgroundColor: '#000000', 
               color: '#ffffff', 
-              padding: '0.25rem',
+              padding: '0.35rem',
               display: 'flex',
-              border: '1.5px solid #ffffff'
+              borderRadius: '50%',
+              border: '2px solid #ffffff',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}
           >
             {uploading ? (

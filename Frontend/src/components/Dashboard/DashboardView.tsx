@@ -107,7 +107,7 @@ export const DashboardView: React.FC<{ onViewReport: (id: string) => void }> = (
               src={report.before_image_url} 
               alt="Pothole" 
               className="list-item-avatar"
-              style={{ width: '45px', height: '45px', border: '1.5px solid #000' }}
+              style={{ width: '45px', height: '45px', borderRadius: '8px', border: 'none' }}
             />
             <div className="list-item-content" style={{ minWidth: 0 }}>
               <div className="flex-row-between" style={{ gap: '0.5rem' }}>
@@ -176,13 +176,14 @@ export const DashboardView: React.FC<{ onViewReport: (id: string) => void }> = (
             {stats?.repair_rate_percentage?.toFixed(1) ?? '0.0'}%
           </span>
         </div>
-        <div style={{ width: '100%', height: '10px', border: '1.5px solid #000000', backgroundColor: '#ffffff', padding: '1px' }}>
+        <div style={{ width: '100%', height: '8px', border: '1px solid rgba(0,0,0,0.08)', backgroundColor: '#fafafa', borderRadius: '6px', padding: '1px', overflow: 'hidden' }}>
           <div 
             style={{ 
               height: '100%', 
               backgroundColor: '#000000', 
               width: `${stats?.repair_rate_percentage ?? 0}%`,
-              transition: 'width 0.5s ease-out'
+              transition: 'width 0.5s ease-out',
+              borderRadius: '4px'
             }}
           />
         </div>

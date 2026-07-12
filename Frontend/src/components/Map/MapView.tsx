@@ -19,14 +19,32 @@ interface MapViewProps {
   onViewReport: (id: string) => void
 }
 
+// Client-side Haversine formula to compute distance in meters
+const getHaversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371e3 // Earth's radius in meters
+  const phi1 = lat1 * Math.PI / 180
+  const phi2 = lat2 * Math.PI / 180
+  const deltaPhi = (lat2 - lat1) * Math.PI / 180
+  const deltaLambda = (lon2 - lon1) * Math.PI / 180
+
+  const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+            Math.cos(phi1) * Math.cos(phi2) *
+            Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+  return R * c
+}
+
 export const MapView: React.FC<MapViewProps> = ({ onViewReport }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const markersLayerRef = useRef<L.FeatureGroup | null>(null)
+  const userLocationMarkerRef = useRef<L.CircleMarker | null>(null)
   
   const [reports, setReports] = useState<ReportItem[]>([])
   const [error, setError] = useState<string | null>(null)
   const [locating, setLocating] = useState(false)
+  const [userCoords, setUserCoords] = useState<{ latitude: number; longitude: number } | null>(null)
 
   // Load all reports from backend
   const fetchReports = async () => {
@@ -66,11 +84,24 @@ export const MapView: React.FC<MapViewProps> = ({ onViewReport }) => {
 
     fetchReports()
 
+    // Automatically check for user geolocation on mount to set initial coordinates
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords
+        setUserCoords({ latitude, longitude })
+      },
+      (err) => {
+        console.log('Initial geolocation ignored or denied:', err)
+      },
+      { timeout: 3000 }
+    )
+
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove()
         mapInstanceRef.current = null
       }
+      userLocationMarkerRef.current = null
     }
   }, [])
 
@@ -101,7 +132,7 @@ export const MapView: React.FC<MapViewProps> = ({ onViewReport }) => {
       
       popupDiv.innerHTML = `
         <div style="margin-bottom: 8px;">
-          <img src="${report.before_image_url}" style="width: 100%; height: 90px; object-fit: cover; border: 1.5px solid #000000;" />
+          <img src="${report.before_image_url}" style="width: 100%; height: 90px; object-fit: cover; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px;" />
         </div>
         <div style="font-weight: 800; font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">
           [ ${report.status.toUpperCase()} ] · PRIO: ${report.priority ?? 1}
@@ -152,7 +183,13 @@ export const MapView: React.FC<MapViewProps> = ({ onViewReport }) => {
       (position) => {
         const { latitude, longitude } = position.coords
         map.setView([latitude, longitude], 15)
+        setUserCoords({ latitude, longitude })
         
+        // Remove previous location marker if it exists to prevent accumulation
+        if (userLocationMarkerRef.current) {
+          userLocationMarkerRef.current.remove()
+        }
+
         // Add a temporary self-location marker
         const myLocationMarker = L.circleMarker([latitude, longitude], {
           radius: 6,
@@ -163,6 +200,8 @@ export const MapView: React.FC<MapViewProps> = ({ onViewReport }) => {
         }).addTo(map)
         
         myLocationMarker.bindTooltip("You are here", { permanent: true, direction: 'top' })
+        userLocationMarkerRef.current = myLocationMarker
+        
         setLocating(false)
       },
       (err) => {
@@ -190,7 +229,7 @@ export const MapView: React.FC<MapViewProps> = ({ onViewReport }) => {
 
       {/* Map Viewport Container */}
       <div style={{ flex: 1, position: 'relative', minHeight: '350px' }}>
-        <div ref={mapContainerRef} className="map-wrapper" style={{ height: '100%', width: '100%', border: '1.5px solid #000000' }} />
+        <div ref={mapContainerRef} className="map-wrapper" style={{ height: '100%', width: '100%', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '16px', overflow: 'hidden' }} />
         
         {/* Float Locate Action Button */}
         <button
@@ -204,13 +243,13 @@ export const MapView: React.FC<MapViewProps> = ({ onViewReport }) => {
             zIndex: 1000,
             width: 'auto',
             height: '40px',
-            borderRadius: '0',
-            boxShadow: '3px 3px 0px #000000',
-            border: '1.5px solid #ffffff',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+            border: 'none',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '0 0.8rem'
+            padding: '0 1rem'
           }}
         >
           {locating ? (
@@ -227,9 +266,12 @@ export const MapView: React.FC<MapViewProps> = ({ onViewReport }) => {
       {/* Slide up panel for nearby reports matching mockup */}
       <div className="bottom-sheet">
         <div className="bottom-sheet-header">
-          <span>Nearby Potholes</span>
+          <span>{userCoords ? 'Potholes within 2km' : 'Total Pending Potholes'}</span>
           <span className="count-badge">
-            {reports.filter((r) => r.status === 'pending').length}
+            {userCoords 
+              ? reports.filter((r) => r.status === 'pending' && getHaversineDistance(userCoords.latitude, userCoords.longitude, r.latitude, r.longitude) <= 2000).length
+              : reports.filter((r) => r.status === 'pending').length
+            }
           </span>
         </div>
       </div>

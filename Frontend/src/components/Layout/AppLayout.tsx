@@ -16,7 +16,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ activeTab, setActiveTab, c
       
       {/* App Header */}
       <header className="header">
-        <span className="header-title">SPOTHOLE</span>
+        <span style={{ fontSize: '1.25rem', fontWeight: 900, letterSpacing: '-0.03em', color: '#000000' }}>spothole.</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <span className={`role-badge ${role}`}>
             {role}

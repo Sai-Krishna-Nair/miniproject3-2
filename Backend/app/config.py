@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     AUTHORITY_INVITE_CODE: str = os.getenv("AUTHORITY_INVITE_CODE", "")
 
     CORS_ORIGINS: List[str] = ["*"]
-    GEOFENCE_RADIUS_METERS: float = 10.0
+    GEOFENCE_RADIUS_METERS: float = 30.0
 
     YOLO_MODEL_PATH: str = "best_pothole1.pt"
 

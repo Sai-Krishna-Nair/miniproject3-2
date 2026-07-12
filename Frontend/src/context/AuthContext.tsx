@@ -87,7 +87,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (activeSession) {
           setSession(activeSession)
           setUser(activeSession.user)
-          await fetchProfileAndRole(activeSession.user)
+          // Fetch profile in background, do not block the initial loading screen
+          fetchProfileAndRole(activeSession.user)
         }
       } catch (err) {
         console.error('Error recovering session:', err)
@@ -105,7 +106,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(newSession?.user ?? null)
         
         if (newSession?.user) {
-          await fetchProfileAndRole(newSession.user)
+          // Fetch profile in background, do not block the transition
+          fetchProfileAndRole(newSession.user)
         } else {
           setRole(null)
           setProfile(null)

@@ -59,6 +59,29 @@ export const ReportDetailView: React.FC<ReportDetailViewProps> = ({ reportId, on
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
+      
+      // Client-side validation
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp']
+      const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp']
+      const maxFileSize = 10 * 1024 * 1024 // 10MB
+
+      const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
+      if (!allowedExtensions.includes(ext) || !allowedMimeTypes.includes(file.type)) {
+        setResolutionError(`Invalid file type. Only ${allowedExtensions.join(', ')} images are allowed.`)
+        setResolutionImage(null)
+        setResolutionPreview(null)
+        if (e.target) e.target.value = ''
+        return
+      }
+
+      if (file.size > maxFileSize) {
+        setResolutionError('File is too large. Maximum allowed size is 10MB.')
+        setResolutionImage(null)
+        setResolutionPreview(null)
+        if (e.target) e.target.value = ''
+        return
+      }
+
       setResolutionImage(file)
       
       const reader = new FileReader()
@@ -207,13 +230,13 @@ export const ReportDetailView: React.FC<ReportDetailViewProps> = ({ reportId, on
           <img 
             src={report.before_image_url} 
             alt="Pothole Before" 
-            style={{ width: '100%', border: '1.5px solid #000000', objectFit: 'cover', maxHeight: '300px' }}
+            style={{ width: '100%', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '12px', objectFit: 'cover', maxHeight: '300px' }}
           />
         </div>
 
         {/* Resolved status details */}
         {report.status === 'fixed' && (
-          <div style={{ borderTop: '1.5px solid #000000', paddingTop: '1.5rem' }}>
+          <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: '1.5rem' }}>
             <div className="card card-stark" style={{ padding: '1rem', marginBottom: '1.25rem' }}>
               <h3 style={{ marginBottom: '0.5rem', fontSize: '0.8rem' }}>Resolution audit log</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem' }}>
@@ -233,7 +256,7 @@ export const ReportDetailView: React.FC<ReportDetailViewProps> = ({ reportId, on
               <img 
                 src={report.after_image_url} 
                 alt="Pothole After" 
-                style={{ width: '100%', border: '1.5px solid #000000', objectFit: 'cover', maxHeight: '300px' }}
+                style={{ width: '100%', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '12px', objectFit: 'cover', maxHeight: '300px' }}
               />
             ) : (
               <p style={{ fontStyle: 'italic' }}>After image unavailable.</p>
@@ -245,7 +268,7 @@ export const ReportDetailView: React.FC<ReportDetailViewProps> = ({ reportId, on
 
       {/* Authority Resolution Form */}
       {report.status === 'pending' && role === 'authority' && (
-        <div style={{ borderTop: '1.5px solid #000000', paddingTop: '1.5rem', marginBottom: '2rem' }}>
+        <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: '1.5rem', marginBottom: '2rem' }}>
           <div className="card card-stark" style={{ padding: '1.5rem' }}>
             <h2 style={{ fontSize: '1rem', borderBottom: 'none', padding: '0', margin: '0 0 1rem 0' }}>Verify Resolution</h2>
             <p style={{ marginBottom: '1.25rem', fontSize: '0.8rem' }}>

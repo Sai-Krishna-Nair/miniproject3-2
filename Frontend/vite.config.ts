@@ -8,6 +8,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      devOptions: {
+        enabled: true
+      },
       includeAssets: ['favicon.ico', 'icon-192.png', 'icon-512.png'],
       manifest: {
         name: 'Pothole Reporter',
@@ -40,5 +43,8 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  server: {
+    allowedHosts: true
+  }
 })

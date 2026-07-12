@@ -145,7 +145,7 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({ onViewReport }
       </div>
 
       {/* List count summary */}
-      <div className="flex-row-between" style={{ marginBottom: '1rem', borderBottom: '1px solid #000', paddingBottom: '0.5rem' }}>
+      <div className="flex-row-between" style={{ marginBottom: '1rem', borderBottom: '1px solid rgba(0, 0, 0, 0.06)', paddingBottom: '0.5rem' }}>
         <span style={{ fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           Found {filteredReports.length} Reports
         </span>
@@ -169,7 +169,7 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({ onViewReport }
               <img 
                 src={report.before_image_url} 
                 alt="Pothole before" 
-                style={{ width: '80px', height: '80px', objectFit: 'cover', border: '1.5px solid #000000', flexShrink: 0 }}
+                style={{ width: '80px', height: '80px', objectFit: 'cover', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '10px', flexShrink: 0 }}
               />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="flex-row-between" style={{ marginBottom: '0.25rem' }}>

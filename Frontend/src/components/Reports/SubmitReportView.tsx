@@ -55,6 +55,29 @@ export const SubmitReportView: React.FC<SubmitReportViewProps> = ({ onSuccess })
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
+      
+      // Client-side validation
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp']
+      const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp']
+      const maxFileSize = 10 * 1024 * 1024 // 10MB
+
+      const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
+      if (!allowedExtensions.includes(ext) || !allowedMimeTypes.includes(file.type)) {
+        setSubmitError(`Invalid file type. Only ${allowedExtensions.join(', ')} images are allowed.`)
+        setImage(null)
+        setImagePreview(null)
+        if (e.target) e.target.value = ''
+        return
+      }
+
+      if (file.size > maxFileSize) {
+        setSubmitError('File is too large. Maximum allowed size is 10MB.')
+        setImage(null)
+        setImagePreview(null)
+        if (e.target) e.target.value = ''
+        return
+      }
+
       setImage(file)
 
       const reader = new FileReader()

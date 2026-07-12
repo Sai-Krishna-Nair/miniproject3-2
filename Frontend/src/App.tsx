@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useAuth } from './context/AuthContext'
 import { AppLayout } from './components/Layout/AppLayout'
 import { AuthView } from './components/Auth/AuthView'
+import { LandingView } from './components/Landing/LandingView'
 import { DashboardView } from './components/Dashboard/DashboardView'
 import { MapView } from './components/Map/MapView'
 import { SubmitReportView } from './components/Reports/SubmitReportView'
@@ -12,6 +13,26 @@ function AppContent() {
   const { user, loading, role } = useAuth()
   const [activeTab, setActiveTab] = useState<string>('dashboard')
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
+  
+  // Landing page routing states
+  const [landingViewState, setLandingViewState] = useState<'landing' | 'auth'>('landing')
+  const [authMode, setAuthMode] = useState<'citizen' | 'authority'>('citizen')
+  const [authSignUp, setAuthSignUp] = useState<boolean>(false)
+
+  // Reset to landing view on logout
+  React.useEffect(() => {
+    if (!user) {
+      setLandingViewState('landing')
+    }
+  }, [user])
+
+  // Redirect non-citizens away from the 'report' tab
+  // (Done in useEffect, NOT during render, to avoid setState-during-render)
+  React.useEffect(() => {
+    if (activeTab === 'report' && role !== 'citizen') {
+      setActiveTab('dashboard')
+    }
+  }, [activeTab, role])
 
   // Full page load gating
   if (loading) {
@@ -27,7 +48,25 @@ function AppContent() {
 
   // Not logged in
   if (!user) {
-    return <AuthView />
+    if (landingViewState === 'landing') {
+      return (
+        <LandingView 
+          onRouteToAuth={(mode, isSignUp) => {
+            setAuthMode(mode)
+            setAuthSignUp(isSignUp)
+            setLandingViewState('auth')
+          }} 
+        />
+      )
+    }
+
+    return (
+      <AuthView 
+        initialIsSignUp={authSignUp}
+        initialShowInviteCode={authMode === 'authority'}
+        onBackToLanding={() => setLandingViewState('landing')} 
+      />
+    )
   }
 
   // Handle detailed report inspection override
@@ -56,7 +95,7 @@ function AppContent() {
         return <MapView onViewReport={handleViewReport} />
       case 'report':
         if (role !== 'citizen') {
-          setActiveTab('dashboard')
+          // useEffect above will redirect; show dashboard in the meantime
           return <DashboardView onViewReport={handleViewReport} />
         }
         return (
