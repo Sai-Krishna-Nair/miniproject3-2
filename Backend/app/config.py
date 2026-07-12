@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY", "")
     SUPABASE_JWT_SECRET: str = os.getenv("SUPABASE_JWT_SECRET", "")
 
+    AUTHORITY_INVITE_CODE: str = os.getenv("AUTHORITY_INVITE_CODE", "")
+
     CORS_ORIGINS: List[str] = ["*"]
     GEOFENCE_RADIUS_METERS: float = 10.0
 

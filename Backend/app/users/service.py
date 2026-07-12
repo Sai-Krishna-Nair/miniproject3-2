@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from fastapi import UploadFile, HTTPException
 
-from app.dependencies import get_supabase, upload_image
+from app.dependencies import get_supabase, upload_image, validate_image_upload
 from app.config import settings
 from app.users.schemas import ProfileUpdate
 
@@ -48,7 +48,7 @@ async def upload_avatar(user_id: str, image: UploadFile) -> str:
     Upload a profile picture to the 'avatars' bucket.
     Updates the avatar_url in the profiles table and returns the public URL.
     """
-    contents = await image.read()
+    contents = await validate_image_upload(image, label="Avatar image")
 
     file_ext = os.path.splitext(image.filename or "avatar.jpg")[1] or ".jpg"
     file_name = f"{user_id}_{uuid.uuid4()}{file_ext}"

@@ -44,6 +44,8 @@ async def submit_report(
 
         return JSONResponse(status_code=200, content=result)
 
+    except HTTPException as he:
+        raise he
     except Exception as e:
         print(f"Submit error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error.")
@@ -80,6 +82,8 @@ async def resolve_report(
 
         return JSONResponse(status_code=200, content=result)
 
+    except HTTPException as he:
+        raise he
     except Exception as e:
         print(f"Resolve error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error.")

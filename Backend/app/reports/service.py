@@ -10,7 +10,7 @@ from PIL import Image
 from fastapi import UploadFile, HTTPException
 
 from app.config import settings
-from app.dependencies import get_supabase, get_model, draw_annotations, upload_image, generate_filename
+from app.dependencies import get_supabase, get_model, draw_annotations, upload_image, generate_filename, validate_image_upload
 
 
 # ---------------------------------------------------------------------------
@@ -74,7 +74,7 @@ async def submit_report(
     3. Annotate + upload image
     4. Insert DB row
     """
-    contents = await image.read()
+    contents = await validate_image_upload(image, label="Pothole image")
 
     # 1. AI inference
     img = Image.open(io.BytesIO(contents))
@@ -93,20 +93,22 @@ async def submit_report(
     sb = get_supabase()
     duplicate = find_duplicate_report(latitude, longitude)
     if duplicate:
-        # Pothole already reported! Increment priority by 1
-        current_priority = duplicate.get("priority", 1) or 1
-        new_priority = current_priority + 1
-        
-        sb.table("reports").update({
-            "priority": new_priority
-        }).eq("id", duplicate["id"]).execute()
+        # Pothole already reported! Increment priority by 1 safely
+        duplicate_id = duplicate.get("id")
+        if duplicate_id:
+            current_priority = duplicate.get("priority", 1) or 1
+            new_priority = current_priority + 1
+            try:
+                sb.table("reports").update({
+                    "priority": new_priority
+                }).eq("id", duplicate_id).execute()
+            except Exception as e:
+                print(f"Error escalating duplicate report priority: {e}")
         
         return {
-            "success": True,
-            "message": "Duplicate reported. Pothole priority escalated.",
-            "report_id": duplicate["id"],
-            "detections": detections,
-            "annotated_image_url": duplicate.get("before_image_url") or "",
+            "success": False,
+            "error": "Pothole already exists nearby. Pothole priority escalated.",
+            "status_code": 409,
         }
 
     # 3. Annotate + upload
@@ -161,7 +163,7 @@ async def resolve_report(
     if existing.data[0]["status"] == "fixed":
         return {"success": False, "error": "Report already marked as fixed.", "status_code": 409}
 
-    contents = await image.read()
+    contents = await validate_image_upload(image, label="Resolution image")
 
     # 2. AI inference — must detect ZERO potholes
     img = Image.open(io.BytesIO(contents))

@@ -2,6 +2,7 @@ import io
 import uuid
 
 from PIL import Image
+from fastapi import UploadFile, HTTPException
 from supabase import create_client, Client
 from ultralytics import YOLO
 
@@ -60,3 +61,92 @@ def generate_filename(prefix: str = "", extension: str = ".jpg") -> str:
     """Generate a unique filename with an optional prefix."""
     name = f"{uuid.uuid4()}{extension}"
     return f"{prefix}{name}" if prefix else name
+
+
+# ---------------------------------------------------------------------------
+# Upload validation
+# ---------------------------------------------------------------------------
+
+MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"}
+
+ALLOWED_MIME_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "image/bmp",
+}
+
+# Magic byte signatures for common image formats
+_MAGIC_BYTES = [
+    (b"\xff\xd8\xff",          "JPEG"),
+    (b"\x89PNG\r\n\x1a\n",    "PNG"),
+    (b"RIFF",                  "WebP"),   # WebP starts with RIFF....WEBP
+    (b"GIF87a",                "GIF"),
+    (b"GIF89a",                "GIF"),
+    (b"BM",                    "BMP"),
+]
+
+
+async def validate_image_upload(
+    image: UploadFile,
+    *,
+    max_size: int = MAX_IMAGE_SIZE_BYTES,
+    label: str = "Image",
+) -> bytes:
+    """
+    Validate and read an uploaded image file. Returns the raw file bytes.
+
+    Checks performed:
+    1. File extension is in ALLOWED_EXTENSIONS
+    2. MIME / content-type is in ALLOWED_MIME_TYPES
+    3. File size ≤ max_size
+    4. Magic bytes match a known image format
+
+    Raises HTTPException(400) on any failure.
+    """
+    import os
+
+    # 1. Extension check
+    filename = image.filename or ""
+    ext = os.path.splitext(filename)[1].lower()
+    if ext and ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{label} file type '{ext}' is not allowed. Accepted: {', '.join(sorted(ALLOWED_EXTENSIONS))}",
+        )
+
+    # 2. MIME type check
+    content_type = (image.content_type or "").lower()
+    if content_type and content_type not in ALLOWED_MIME_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{label} MIME type '{content_type}' is not allowed. Accepted: {', '.join(sorted(ALLOWED_MIME_TYPES))}",
+        )
+
+    # 3. Read + size check
+    contents = await image.read()
+    if len(contents) > max_size:
+        size_mb = max_size / (1024 * 1024)
+        raise HTTPException(
+            status_code=400,
+            detail=f"{label} is too large ({len(contents) / (1024*1024):.1f} MB). Maximum allowed: {size_mb:.0f} MB.",
+        )
+
+    if len(contents) == 0:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{label} file is empty.",
+        )
+
+    # 4. Magic bytes check
+    if not any(contents.startswith(sig) for sig, _ in _MAGIC_BYTES):
+        raise HTTPException(
+            status_code=400,
+            detail=f"{label} does not appear to be a valid image file. The file header is unrecognized.",
+        )
+
+    return contents
+
