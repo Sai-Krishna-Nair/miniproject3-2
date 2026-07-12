@@ -108,7 +108,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onRouteToAuth }) => {
 
       {/* ── HERO SECTION ── */}
       <section style={{
-        padding: '6rem 2rem 4rem 2rem',
+        padding: '6rem 1rem 4rem 1rem',
         maxWidth: '1200px',
         margin: '0 auto',
         width: '100%',
@@ -231,7 +231,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onRouteToAuth }) => {
           {/* Main Layout Grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
             gap: '1.5rem',
             width: '100%',
           }}>
@@ -359,7 +359,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onRouteToAuth }) => {
           {/* Sub Grid: Loss curves and real-time bounding box visual */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
             gap: '1.5rem',
             width: '100%',
           }}>
@@ -504,7 +504,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onRouteToAuth }) => {
         backgroundColor: '#ffffff',
         borderTop: '1px solid rgba(0,0,0,0.06)',
         borderBottom: '1px solid rgba(0,0,0,0.06)',
-        padding: '6rem 2rem',
+        padding: '6rem 1rem',
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
@@ -531,7 +531,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onRouteToAuth }) => {
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
             gap: '2rem',
           }}>
             {/* Step 1 */}
@@ -653,7 +653,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onRouteToAuth }) => {
 
       {/* ── FEATURE HIGHLIGHTS ── */}
       <section style={{
-        padding: '6rem 2rem',
+        padding: '6rem 1rem',
         maxWidth: '1200px',
         margin: '0 auto',
         width: '100%',
@@ -679,7 +679,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onRouteToAuth }) => {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
           gap: '2.5rem',
         }}>
           {/* Feature 1 */}
@@ -760,7 +760,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onRouteToAuth }) => {
       <section style={{
         backgroundColor: '#000000',
         color: '#ffffff',
-        padding: '6rem 2rem',
+        padding: '6rem 1rem',
         textAlign: 'center',
         position: 'relative',
         overflow: 'hidden',

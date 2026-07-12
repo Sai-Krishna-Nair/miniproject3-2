@@ -13,9 +13,9 @@ export default defineConfig({
       },
       includeAssets: ['favicon.ico', 'icon-192.png', 'icon-512.png'],
       manifest: {
-        name: 'Pothole Reporter',
-        short_name: 'Pothole PWA',
-        description: 'Minimalist reporting and resolution platform for public infrastructure.',
+        name: 'SpotHole',
+        short_name: 'SpotHole',
+        description: 'AI powered pothole reporting and resolution platform',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
