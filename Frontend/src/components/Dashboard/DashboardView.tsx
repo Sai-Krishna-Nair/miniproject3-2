@@ -82,7 +82,16 @@ export const DashboardView: React.FC<{ onViewReport: (id: string) => void }> = (
   }
 
   const myReports = reports.filter((r) => r.reported_by === profile?.id)
-  const pendingReports = reports.filter((r) => r.status === 'pending')
+  const pendingReports = reports
+    .filter((r) => r.status === 'pending')
+    .sort((a, b) => {
+      const prioA = a.priority ?? 1
+      const prioB = b.priority ?? 1
+      if (prioB !== prioA) {
+        return prioB - prioA // Highest priority first
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime() // Sub-sort by newest first
+    })
   const fixedReports = reports.filter((r) => r.status === 'fixed')
 
   const renderReportList = (list: ReportItem[], emptyMsg: string) => {
