@@ -262,7 +262,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onRouteToAuth }) => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.04)', paddingBottom: '0.5rem' }}>
                   <span style={{ fontSize: '0.8rem', color: '#666' }}>Base Architecture</span>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>YOLOv8 Nano (Anchor-Free)</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>YOLOv12</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.04)', paddingBottom: '0.5rem' }}>
                   <span style={{ fontSize: '0.8rem', color: '#666' }}>Inference Size</span>
@@ -298,7 +298,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onRouteToAuth }) => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.04)', paddingBottom: '0.5rem' }}>
                   <span style={{ fontSize: '0.8rem', color: '#666' }}>Total Training Images</span>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>3,250 annotated images</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>2,459 annotated images</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.04)', paddingBottom: '0.5rem' }}>
                   <span style={{ fontSize: '0.8rem', color: '#666' }}>Data Splits (Train/Val/Test)</span>
@@ -306,11 +306,11 @@ export const LandingView: React.FC<LandingViewProps> = ({ onRouteToAuth }) => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.04)', paddingBottom: '0.5rem' }}>
                   <span style={{ fontSize: '0.8rem', color: '#666' }}>Training Epochs</span>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>100 Epochs</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>60 Epochs</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.2rem' }}>
                   <span style={{ fontSize: '0.8rem', color: '#666' }}>Optimizer & Batch Size</span>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>SGD / 16 batch</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>Adam/8 batch</span>
                 </div>
               </div>
             </div>
@@ -338,19 +338,19 @@ export const LandingView: React.FC<LandingViewProps> = ({ onRouteToAuth }) => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div style={{ backgroundColor: '#fafafa', padding: '0.6rem', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#737373', textTransform: 'uppercase' }}>Precision</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#000000', marginTop: '0.1rem' }}>89.4%</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#000000', marginTop: '0.1rem' }}>74.48%</div>
                 </div>
                 <div style={{ backgroundColor: '#fafafa', padding: '0.6rem', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#737373', textTransform: 'uppercase' }}>Recall</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#000000', marginTop: '0.1rem' }}>82.1%</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#000000', marginTop: '0.1rem' }}>62.18%</div>
                 </div>
                 <div style={{ backgroundColor: '#fafafa', padding: '0.6rem', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#737373', textTransform: 'uppercase' }}>mAP @50</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#10b981', marginTop: '0.1rem' }}>87.6%</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#10b981', marginTop: '0.1rem' }}>69.83%</div>
                 </div>
                 <div style={{ backgroundColor: '#fafafa', padding: '0.6rem', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#737373', textTransform: 'uppercase' }}>Avg Latency</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#3b82f6', marginTop: '0.1rem' }}>~45ms</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#3b82f6', marginTop: '0.1rem' }}>~7 ms</div>
                 </div>
               </div>
             </div>
