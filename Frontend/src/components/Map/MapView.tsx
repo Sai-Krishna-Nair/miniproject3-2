@@ -105,7 +105,7 @@ export const MapView: React.FC<MapViewProps> = ({ onViewReport }) => {
     }
   }, [])
 
-  // Plot markers when reports data changes
+  // Plot markers when reports data changes or userCoords is updated
   useEffect(() => {
     const map = mapInstanceRef.current
     const layer = markersLayerRef.current
@@ -116,6 +116,17 @@ export const MapView: React.FC<MapViewProps> = ({ onViewReport }) => {
 
     reports.forEach((report) => {
       if (report.status === 'fixed') return
+      
+      // Filter: if user coordinates are available, only plot markers within 2km
+      if (userCoords) {
+        const distance = getHaversineDistance(
+          userCoords.latitude,
+          userCoords.longitude,
+          report.latitude,
+          report.longitude
+        )
+        if (distance > 2000) return
+      }
       
       const marker = L.circleMarker([report.latitude, report.longitude], {
         radius: 9,
@@ -161,7 +172,7 @@ export const MapView: React.FC<MapViewProps> = ({ onViewReport }) => {
       layer.addLayer(marker)
     })
 
-    // Fit map bounds to contain all markers if we have markers
+    // Fit map bounds to contain all plotted markers
     try {
       const bounds = layer.getBounds()
       if (bounds.isValid()) {
@@ -171,7 +182,7 @@ export const MapView: React.FC<MapViewProps> = ({ onViewReport }) => {
       console.warn('Could not fit map bounds:', e)
     }
 
-  }, [reports])
+  }, [reports, userCoords])
 
   // Geolocate User and Center Map
   const handleLocateUser = () => {
@@ -227,53 +238,69 @@ export const MapView: React.FC<MapViewProps> = ({ onViewReport }) => {
         </div>
       )}
 
-      {/* Map Viewport Container */}
-      <div style={{ flex: 1, position: 'relative', minHeight: '350px' }}>
-        <div ref={mapContainerRef} className="map-wrapper" style={{ height: '100%', width: '100%', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '16px', overflow: 'hidden' }} />
+      {/* Unified clean container for map and bottom sheet panel */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        border: '1px solid rgba(0, 0, 0, 0.08)',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.02), 0 1px 3px rgba(0,0,0,0.01)',
+        minHeight: '380px',
+        position: 'relative',
+        marginBottom: '1rem'
+      }}>
         
-        {/* Float Locate Action Button */}
-        <button
-          onClick={handleLocateUser}
-          disabled={locating}
-          className="btn btn-primary btn-small"
-          style={{
-            position: 'absolute',
-            bottom: '16px',
-            right: '16px',
-            zIndex: 1000,
-            width: 'auto',
-            height: '40px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-            border: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '0 1rem'
-          }}
-        >
-          {locating ? (
-            <div className="spinner" style={{ borderColor: '#000', borderTopColor: '#fff', width: '14px', height: '14px' }}></div>
-          ) : (
-            <>
-              <Compass size={14} />
-              <span style={{ fontSize: '9px', fontWeight: '800', marginLeft: '6px' }}>LOCATE ME</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Slide up panel for nearby reports matching mockup */}
-      <div className="bottom-sheet">
-        <div className="bottom-sheet-header">
-          <span>{userCoords ? 'Potholes within 2km' : 'Total Pending Potholes'}</span>
-          <span className="count-badge">
-            {userCoords 
-              ? reports.filter((r) => r.status === 'pending' && getHaversineDistance(userCoords.latitude, userCoords.longitude, r.latitude, r.longitude) <= 2000).length
-              : reports.filter((r) => r.status === 'pending').length
-            }
-          </span>
+        {/* Map Viewport Container */}
+        <div style={{ flex: 1, position: 'relative', height: '100%' }}>
+          <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
+          
+          {/* Float Locate Action Button */}
+          <button
+            onClick={handleLocateUser}
+            disabled={locating}
+            className="btn btn-primary btn-small"
+            style={{
+              position: 'absolute',
+              bottom: '16px',
+              right: '16px',
+              zIndex: 1000,
+              width: 'auto',
+              height: '40px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0 1rem'
+            }}
+          >
+            {locating ? (
+              <div className="spinner" style={{ borderColor: '#000', borderTopColor: '#fff', width: '14px', height: '14px' }}></div>
+            ) : (
+              <>
+                <Compass size={14} />
+                <span style={{ fontSize: '9px', fontWeight: '800', marginLeft: '6px' }}>LOCATE ME</span>
+              </>
+            )}
+          </button>
         </div>
+
+        {/* Slide up panel for nearby reports attached cleanly at the bottom */}
+        <div className="bottom-sheet" style={{ margin: 0, border: 'none', borderTop: '1px solid rgba(0,0,0,0.08)', zIndex: 100 }}>
+          <div className="bottom-sheet-header">
+            <span>{userCoords ? 'Potholes within 2km' : 'Total Pending Potholes'}</span>
+            <span className="count-badge">
+              {userCoords 
+                ? reports.filter((r) => r.status === 'pending' && getHaversineDistance(userCoords.latitude, userCoords.longitude, r.latitude, r.longitude) <= 2000).length
+                : reports.filter((r) => r.status === 'pending').length
+              }
+            </span>
+          </div>
+        </div>
+
       </div>
 
     </div>
